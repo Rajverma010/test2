@@ -1,0 +1,6 @@
+{
+  "users": [
+    { "id": 1, "name": "Tarun", "age": 25, "country": "India" },
+    { "id": 2, "name": "Patel", "age": 28, "country": "UK" }
+  ]
+}
