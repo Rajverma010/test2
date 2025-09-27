@@ -13,29 +13,19 @@
     <button *ngIf="isEditing" (click)="cancelEdit()">Cancel</button>
   </div>
 
-  <!-- Users Table -->
-  <table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Age</th>
-        <th>Country</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngIf="users.length === 0">
-        <td colspan="4">No users found.</td>
-      </tr>
-      <tr *ngFor="let user of users">
-        <td>{{ user.name }}</td>
-        <td>{{ user.age }}</td>
-        <td>{{ user.country }}</td>
-        <td>
-          <button (click)="editUser(user)">Edit</button>
-          <button (click)="deleteUser(user.id)">Delete</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Users List -->
+  <div class="users-list">
+    <div *ngIf="users.length === 0">No users found.</div>
+
+    <div *ngFor="let user of users" class="user-item">
+      <p>
+        <b>Name:</b> {{ user.name }} <br>
+        <b>Age:</b> {{ user.age }} <br>
+        <b>Country:</b> {{ user.country }}
+      </p>
+      <button (click)="editUser(user)">Edit</button>
+      <button (click)="deleteUser(user.id)">Delete</button>
+      <hr>
+    </div>
+  </div>
 </div>
