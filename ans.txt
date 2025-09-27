@@ -1,0 +1,242 @@
+practical question and solution
+Q1. Write a playbook to create a new user devops with sudo access on all servers.
+File: create_user.yml
+- name: Create devops user with sudo on Ubuntu
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create user devops
+      user:
+        name: devops
+        state: present
+        groups: sudo
+        append: yes
+Explanation:
+•	hosts: all → Runs on all inventory servers.
+•	become: yes → Executes with root privileges.
+•	user module → Creates a user devops and adds it to wheel group (sudo group).
+Run Command:
+ansible-playbook create_user.yml
+________________________________________
+Q2. Write a playbook to install and start nginx service on webservers.
+File: install_nginx.yml
+- name: Install and start Nginx on Ubuntu
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Start and enable Nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+Explanation:
+•	Installs nginx using yum.
+•	Ensures service is started and enabled at boot.
+Run Command:
+ansible-playbook install_nginx.yml
+________________________________________
+Q3. Write a playbook that copies an index.html file from control node to /var/www/html/ on webservers.
+File: copy_index.yml
+- name: Deploy index.html to webserver on Ubuntu
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Copy index.html
+      copy:
+        src: /home/ansible/index.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+Explanation:
+•	Uses copy module.
+•	Copies index.html from control machine to target webserver directory.
+•	Ensures correct ownership and permissions.
+Run Command:
+ansible-playbook copy_index.yml
+________________________________________
+Q4. Write a playbook that installs multiple packages (git, wget, tree) using a loop.
+File: install_packages.yml
+- name: Install common utilities on Ubuntu
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install multiple packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - git
+        - wget
+        - tree
+Explanation:
+•	loop iterates over a list of packages (git, wget, tree).
+•	Each package gets installed with yum.
+Run Command:
+ansible-playbook install_packages.yml
+________________________________________
+Q5. Write a playbook with a conditional task: install httpd only if the system is RedHat-based.
+File: conditional_httpd.yml
+- name: Conditional package installation for Apache
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Apache on RedHat
+      yum:
+        name: httpd
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Apache on Debian/Ubuntu
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+Explanation:
+•	when: condition checks system OS family.
+•	Installs httpd only if the target is RedHat-based (RHEL, CentOS, Fedora).
+Run Command:
+ansible-playbook conditional_httpd.yml
+
+Q6. Write a playbook to install Apache, and restart service only when configuration changes.
+File: apache_with_handler.yml
+- name: Install and configure Apache with handler on Ubuntu
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+
+    - name: Deploy Apache config file
+      copy:
+        src: /home/ansible/apache2.conf
+        dest: /etc/apache2/apache2.conf
+      notify: restart apache
+
+  handlers:
+    - name: restart apache
+      service:
+        name: apache2
+        state: restarted
+Explanation:
+•	Installs Apache.
+•	Copies a configuration file.
+•	notify triggers handler only when config changes.
+Run Command:
+ansible-playbook apache_with_handler.yml
+________________________________________
+Q7. Write a playbook using tags to run only specific tasks.
+File: tagged_playbook.yml
+- name: Example of using tags on Ubuntu
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+      tags: git_install
+
+    - name: Install Wget
+      apt:
+        name: wget
+        state: present
+      tags: wget_install
+Explanation:
+•	Each task has a tag.
+•	Run only git installation task:
+•	ansible-playbook tagged_playbook.yml --tags git_install
+•	ansible-playbook tagged_playbook.yml --tags wget_install
+•	
+________________________________________
+Q8. Write a playbook using variables for user creation.
+File: user_with_vars.yml
+- name: Create users using variables on Ubuntu
+  hosts: all
+  become: yes
+  vars:
+    user_list:
+      - devops
+      - tester
+      - admin
+  tasks:
+    - name: Create multiple users
+      user:
+        name: "{{ item }}"
+        state: present
+        groups: sudo
+        append: yes
+      loop: "{{ user_list }}"
+Explanation:
+•	Defines user_list variable.
+•	Uses loop to create multiple users.
+Run Command:
+ansible-playbook user_with_vars.yml
+________________________________________
+
+Q9. Write a playbook that uses a role for webserver configuration.
+File: use_web_role.yml
+- name: Configure Webserver using role on Ubuntu
+  hosts: webservers
+  become: yes
+  roles:
+    - webserver
+Explanation:
+•	Uses the webserver role (must be created earlier using ansible-galaxy init webserver).
+•	All tasks, handlers, templates from the role are executed.
+Run Command:
+ansible-playbook use_web_role.yml
+________________________________________
+Q10. Write a playbook that demonstrates exception handling with block, rescue, and always.
+File: exception_handling.yml
+- name: Exception handling demo on Ubuntu
+  hosts: all
+  become: yes
+  tasks:
+    - block:
+        - name: Try installing a fake package
+          apt:
+            name: fakepkg
+            state: present
+            update_cache: yes
+      rescue:
+        - name: Install fallback package (nginx)
+          apt:
+            name: nginx
+            state: present
+            update_cache: yes
+      always:
+        - name: Log completion
+          copy:
+            content: "Playbook execution completed.\n"
+            dest: /tmp/ansible_log.txt
+Explanation:
+•	block: attempts to install fakepkg (will fail).
+•	rescue: installs fallback package (nginx).
+•	always: ensures logging happens no matter success/failure.
+Run Command:
+ansible-playbook exception_handling.yml
